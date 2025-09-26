@@ -3,6 +3,7 @@ const cors = require('cors');
 const { connectDB } = require('./db');
 const path = require('path');
 const marked = require('marked');
+const { ObjectId } = require('mongodb');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,13 +52,22 @@ app.get('/api/articles/all', async (req, res) => {
 
 app.get('/api/articles/:id', async (req, res) => {
   try {
-    const article = await db.collection('articles').findOne({ _id: req.params.id });
+    // 验证并转换ID
+    let articleId;
+    try {
+      articleId = new ObjectId(req.params.id);
+    } catch (err) {
+      return res.status(400).json({ error: '无效的文章ID格式' });
+    }
+    
+    const article = await db.collection('articles').findOne({ _id: articleId });
     if (!article) return res.status(404).json({ error: '文章不存在' });
     
     // 转换Markdown为HTML
     article.contentHtml = marked.parse(article.content);
     res.json(article);
   } catch (err) {
+    console.error('获取文章详情失败:', err);
     res.status(500).json({ error: '获取文章详情失败' });
   }
 });
@@ -79,27 +89,54 @@ app.post('/api/articles', async (req, res) => {
 
 app.put('/api/articles/:id', async (req, res) => {
   try {
+    // 验证并转换ID
+    let articleId;
+    try {
+      articleId = new ObjectId(req.params.id);
+    } catch (err) {
+      return res.status(400).json({ error: '无效的文章ID格式' });
+    }
+    
     const article = {
       ...req.body,
       updatedAt: new Date()
     };
     
-    await db.collection('articles').updateOne(
-      { _id: req.params.id },
+    const result = await db.collection('articles').updateOne(
+      { _id: articleId },
       { $set: article }
     );
     
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ error: '文章不存在或未做任何修改' });
+    }
+    
     res.json({ success: true });
   } catch (err) {
+    console.error('更新文章失败:', err);
     res.status(500).json({ error: '更新文章失败' });
   }
 });
 
 app.delete('/api/articles/:id', async (req, res) => {
   try {
-    await db.collection('articles').deleteOne({ _id: req.params.id });
+    // 验证并转换ID
+    let articleId;
+    try {
+      articleId = new ObjectId(req.params.id);
+    } catch (err) {
+      return res.status(400).json({ error: '无效的文章ID格式' });
+    }
+    
+    const result = await db.collection('articles').deleteOne({ _id: articleId });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: '文章不存在' });
+    }
+    
     res.json({ success: true });
   } catch (err) {
+    console.error('删除文章失败:', err);
     res.status(500).json({ error: '删除文章失败' });
   }
 });

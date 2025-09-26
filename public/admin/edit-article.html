@@ -6,6 +6,7 @@
     <title>编辑文章 - 博客管理系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css">
     <script>
@@ -321,7 +322,12 @@
                 
                 // 获取文章数据
                 const response = await fetch(`/api/articles/${articleId}`);
-                if (!response.ok) throw new Error('获取文章失败');
+                
+                // 检查响应状态
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || '获取文章失败');
+                }
                 
                 const article = await response.json();
                 
@@ -398,6 +404,9 @@
                 return;
             }
             
+            // 显示加载状态
+            showNotification('正在提交...');
+            
             // 构建文章数据
             const articleData = {
                 title,
@@ -418,7 +427,7 @@
                 }
                 
                 // 发送请求
-                const response = await fetch(url, {
+                const response = await fetch(url, { 
                     method: method,
                     headers: {
                         'Content-Type': 'application/json'
@@ -426,13 +435,19 @@
                     body: JSON.stringify(articleData)
                 });
                 
-                if (!response.ok) throw new Error('提交失败');
+                // 处理响应
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || '提交失败');
+                }
+                
+                const result = await response.json().catch(() => ({ success: true }));
                 
                 // 显示成功通知
                 showNotification(successMessage || '文章发布成功');
                 
-                // 如果是新建文章，跳转到文章列表
-                if (!articleId) {
+                // 如果是发布成功，则跳转回文章列表
+                if (successMessage === '文章发布成功') {
                     setTimeout(() => {
                         window.location.href = 'articles.html';
                     }, 1000);
@@ -492,7 +507,10 @@
             });
             previewBtn.addEventListener('click', showPreview);
             closePreview.addEventListener('click', closePreviewModal);
-            saveDraftBtn.addEventListener('click', saveAsDraft);
+            saveDraftBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await saveAsDraft();
+            });
             
             // 预览模态框点击外部关闭
             previewModal.addEventListener('click', (e) => {
