@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分类管理 - 博客管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                        danger: '#EF4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .sidebar-link {
+                @apply flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-200;
+            }
+            .sidebar-link.active {
+                @apply bg-primary text-white;
+            }
+            .table-row {
+                @apply hover:bg-gray-50 transition-colors;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- 侧边栏 -->
+        <aside class="bg-white w-64 shadow-md hidden md:block">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-primary flex items-center">
+                    <i class="fa fa-tachometer mr-2" aria-hidden="true"></i>
+                    <span>博客管理系统</span>
+                </h1>
+            </div>
+            <nav class="py-4">
+                <a href="index.html" class="sidebar-link">
+                    <i class="fa fa-home w-6" aria-hidden="true"></i>
+                    <span class="ml-3">控制台</span>
+                </a>
+                <a href="articles.html" class="sidebar-link">
+                    <i class="fa fa-file-text-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">文章管理</span>
+                </a>
+                <a href="messages.html" class="sidebar-link">
+                    <i class="fa fa-comments-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">留言管理</span>
+                </a>
+                <a href="categories.html" class="sidebar-link active">
+                    <i class="fa fa-folder-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">分类管理</span>
+                </a>
+                <a href="settings.html" class="sidebar-link">
+                    <i class="fa fa-cog w-6" aria-hidden="true"></i>
+                    <span class="ml-3">系统设置</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full border-t border-gray-200">
+                <button id="logout-btn" class="sidebar-link w-full justify-start">
+                    <i class="fa fa-sign-out w-6" aria-hidden="true"></i>
+                    <span class="ml-3">退出登录</span>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- 主内容区 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航 -->
+            <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+                <button id="mobile-menu-toggle" class="md:hidden text-gray-600 focus:outline-none">
+                    <i class="fa fa-bars text-xl" aria-hidden="true"></i>
+                </button>
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-4">欢迎回来，管理员</span>
+                    <img src="https://picsum.photos/id/64/40/40" alt="管理员头像" class="w-8 h-8 rounded-full">
+                </div>
+            </header>
+            
+            <!-- 页面内容 -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <div class="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold">分类管理</h2>
+                        <p class="text-gray-600 mt-1">管理博客文章分类</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button id="add-category-btn" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors flex items-center justify-center">
+                            <i class="fa fa-plus mr-2" aria-hidden="true"></i>
+                            新增分类
+                        </button>
+                        <button id="refresh-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors flex items-center justify-center">
+                            <i class="fa fa-refresh mr-2" aria-hidden="true"></i>
+                            刷新列表
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 分类列表 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">分类名称</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">标识</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">文章数量</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- 分类列表将通过JavaScript动态加载 -->
+                                <tr class="text-center">
+                                    <td colspan="4" class="px-6 py-10 text-gray-500">
+                                        <i class="fa fa-spinner fa-spin mr-2" aria-hidden="true"></i> 加载中...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 移动端侧边栏 -->
+    <div id="mobile-sidebar" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden md:hidden">
+        <div class="bg-white h-full w-64 shadow-xl transform transition-transform">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-primary flex items-center">
+                    <i class="fa fa-tachometer mr-2" aria-hidden="true"></i>
+                    <span>博客管理系统</span>
+                </h1>
+                <button id="close-mobile-sidebar" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times text-xl" aria-hidden="true"></i>
+                </button>
+            </div>
+            <nav class="py-4">
+                <a href="index.html" class="sidebar-link block">
+                    <i class="fa fa-home w-6" aria-hidden="true"></i>
+                    <span class="ml-3">控制台</span>
+                </a>
+                <a href="articles.html" class="sidebar-link block">
+                    <i class="fa fa-file-text-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">文章管理</span>
+                </a>
+                <a href="messages.html" class="sidebar-link block">
+                    <i class="fa fa-comments-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">留言管理</span>
+                </a>
+                <a href="categories.html" class="sidebar-link active block">
+                    <i class="fa fa-folder-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">分类管理</span>
+                </a>
+                <a href="settings.html" class="sidebar-link block">
+                    <i class="fa fa-cog w-6" aria-hidden="true"></i>
+                    <span class="ml-3">系统设置</span>
+                </a>
+                <button id="mobile-logout-btn" class="sidebar-link block w-full justify-start">
+                    <i class="fa fa-sign-out w-6" aria-hidden="true"></i>
+                    <span class="ml-3">退出登录</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- 新增/编辑分类弹窗 -->
+    <div id="category-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 transform transition-all">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-xl font-bold" id="modal-title">新增分类</h3>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times text-xl" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="category-form">
+                    <input type="hidden" id="category-id" value="">
+                    <div class="mb-4">
+                        <label for="category-name" class="block text-sm font-medium text-gray-700 mb-1">分类名称 <span class="text-danger">*</span></label>
+                        <input type="text" id="category-name" name="name" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            placeholder="请输入分类名称">
+                    </div>
+                    <div class="mb-6">
+                        <label for="category-slug" class="block text-sm font-medium text-gray-700 mb-1">分类标识 <span class="text-danger">*</span></label>
+                        <input type="text" id="category-slug" name="slug" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            placeholder="请输入分类标识（英文、数字、下划线）">
+                        <p class="text-xs text-gray-500 mt-1">用于URL路径，建议使用英文小写、数字和下划线</p>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancel-modal-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            取消
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors">
+                            保存
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const closeMobileSidebar = document.getElementById('close-mobile-sidebar');
+        const categoriesTableBody = document.getElementById('categories-table-body');
+        const addCategoryBtn = document.getElementById('add-category-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const categoryModal = document.getElementById('category-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const cancelModalBtn = document.getElementById('cancel-modal-btn');
+        const categoryForm = document.getElementById('category-form');
+        const modalTitle = document.getElementById('modal-title');
+        const categoryId = document.getElementById('category-id');
+        const categoryName = document.getElementById('category-name');
+        const categorySlug = document.getElementById('category-slug');
+        const logoutBtn = document.getElementById('logout-btn');
+        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+
+        // 移动端菜单切换
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileSidebar.classList.remove('hidden');
+        });
+
+        closeMobileSidebar.addEventListener('click', () => {
+            mobileSidebar.classList.add('hidden');
+        });
+
+        // 关闭模态框
+        closeModalBtn.addEventListener('click', () => {
+            categoryModal.classList.add('hidden');
+            resetForm();
+        });
+
+        cancelModalBtn.addEventListener('click', () => {
+            categoryModal.classList.add('hidden');
+            resetForm();
+        });
+
+        // 新增分类
+        addCategoryBtn.addEventListener('click', () => {
+            modalTitle.textContent = '新增分类';
+            resetForm();
+            categoryModal.classList.remove('hidden');
+        });
+
+        // 重置表单
+        function resetForm() {
+            categoryId.value = '';
+            categoryName.value = '';
+            categorySlug.value = '';
+            categoryForm.reset();
+        }
+
+        // 加载分类列表
+        async function loadCategories() {
+            try {
+                // 显示加载状态
+                categoriesTableBody.innerHTML = `
+                    <tr class="text-center">
+                        <td colspan="4" class="px-6 py-10 text-gray-500">
+                            <i class="fa fa-spinner fa-spin mr-2" aria-hidden="true"></i> 加载中...
+                        </td>
+                    </tr>
+                `;
+
+                // 模拟API请求延迟
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // 模拟分类数据
+                const categories = [
+                    { id: '1', name: '情感记录', slug: 'emotion', articleCount: 5 },
+                    { id: '2', name: '技术分享', slug: 'tech', articleCount: 8 }
+                ];
+
+                // 生成分类表格HTML
+                let categoriesHtml = '';
+                if (categories.length === 0) {
+                    categoriesHtml = `
+                        <tr class="text-center">
+                            <td colspan="4" class="px-6 py-10 text-gray-500">
+                                <i class="fa fa-folder-open-o text-4xl text-gray-300 mb-4" aria-hidden="true"></i>
+                                <p>暂无分类</p>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    categories.forEach(category => {
+                        categoriesHtml += `
+                            <tr class="table-row">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="font-medium text-gray-900">${category.name}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">${category.slug}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-gray-600">${category.articleCount}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-primary hover:text-primary/80 mr-3" onclick="editCategory('${category.id}', '${category.name}', '${category.slug}')">
+                                        <i class="fa fa-pencil" aria-hidden="true"></i> 编辑
+                                    </button>
+                                    <button class="text-danger hover:text-danger/80" onclick="deleteCategory('${category.id}', '${category.name}')">
+                                        <i class="fa fa-trash" aria-hidden="true"></i> 删除
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                categoriesTableBody.innerHTML = categoriesHtml;
+            } catch (err) {
+                console.error('加载分类失败:', err);
+                categoriesTableBody.innerHTML = `
+                    <tr class="text-center">
+                        <td colspan="4" class="px-6 py-10 text-red-500">
+                            <i class="fa fa-exclamation-circle mr-2" aria-hidden="true"></i> 加载分类失败
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // 编辑分类
+        function editCategory(id, name, slug) {
+            modalTitle.textContent = '编辑分类';
+            categoryId.value = id;
+            categoryName.value = name;
+            categorySlug.value = slug;
+            categoryModal.classList.remove('hidden');
+        }
+
+        // 删除分类
+        function deleteCategory(id, name) {
+            if (confirm(`确定要删除分类 "${name}" 吗？此操作将影响使用该分类的文章。`)) {
+                // 这里应该调用API删除分类
+                // 模拟API请求
+                setTimeout(() => {
+                    alert(`分类 "${name}" 已删除`);
+                    loadCategories();
+                }, 500);
+            }
+        }
+
+        // 表单提交
+        categoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = categoryId.value;
+            const name = categoryName.value.trim();
+            const slug = categorySlug.value.trim();
+            
+            if (!name || !slug) {
+                alert('请填写完整信息');
+                return;
+            }
+            
+            try {
+                // 模拟API请求
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const isEdit = !!id;
+                const message = isEdit ? `分类 "${name}" 已更新` : `分类 "${name}" 已创建`;
+                
+                alert(message);
+                categoryModal.classList.add('hidden');
+                resetForm();
+                loadCategories();
+            } catch (err) {
+                console.error('保存分类失败:', err);
+                alert('保存失败，请重试');
+            }
+        });
+
+        // 刷新列表
+        refreshBtn.addEventListener('click', loadCategories);
+
+        // 退出登录
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('确定要退出登录吗？')) {
+                // 这里应该实现退出登录逻辑
+                alert('已退出登录');
+            }
+        });
+
+        mobileLogoutBtn.addEventListener('click', () => {
+            if (confirm('确定要退出登录吗？')) {
+                // 这里应该实现退出登录逻辑
+                alert('已退出登录');
+                mobileSidebar.classList.add('hidden');
+            }
+        });
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+        });
+    </script>
+</body>
+</html>

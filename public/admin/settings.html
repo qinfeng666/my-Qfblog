@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置 - 博客管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                        danger: '#EF4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .sidebar-link {
+                @apply flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-200;
+            }
+            .sidebar-link.active {
+                @apply bg-primary text-white;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- 侧边栏 -->
+        <aside class="bg-white w-64 shadow-md hidden md:block">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-primary flex items-center">
+                    <i class="fa fa-tachometer mr-2" aria-hidden="true"></i>
+                    <span>博客管理系统</span>
+                </h1>
+            </div>
+            <nav class="py-4">
+                <a href="index.html" class="sidebar-link">
+                    <i class="fa fa-home w-6" aria-hidden="true"></i>
+                    <span class="ml-3">控制台</span>
+                </a>
+                <a href="articles.html" class="sidebar-link">
+                    <i class="fa fa-file-text-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">文章管理</span>
+                </a>
+                <a href="messages.html" class="sidebar-link">
+                    <i class="fa fa-comments-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">留言管理</span>
+                </a>
+                <a href="categories.html" class="sidebar-link">
+                    <i class="fa fa-folder-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">分类管理</span>
+                </a>
+                <a href="settings.html" class="sidebar-link active">
+                    <i class="fa fa-cog w-6" aria-hidden="true"></i>
+                    <span class="ml-3">系统设置</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full border-t border-gray-200">
+                <button id="logout-btn" class="sidebar-link w-full justify-start">
+                    <i class="fa fa-sign-out w-6" aria-hidden="true"></i>
+                    <span class="ml-3">退出登录</span>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- 主内容区 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航 -->
+            <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+                <button id="mobile-menu-toggle" class="md:hidden text-gray-600 focus:outline-none">
+                    <i class="fa fa-bars text-xl" aria-hidden="true"></i>
+                </button>
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-4">欢迎回来，管理员</span>
+                    <img src="https://picsum.photos/id/64/40/40" alt="管理员头像" class="w-8 h-8 rounded-full">
+                </div>
+            </header>
+            
+            <!-- 页面内容 -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold">系统设置</h2>
+                    <p class="text-gray-600 mt-1">管理博客的基本设置</p>
+                </div>
+                
+                <!-- 设置表单 -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <form id="settings-form">
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">基本设置</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="blog-title" class="block text-sm font-medium text-gray-700 mb-1">博客标题 <span class="text-danger">*</span></label>
+                                    <input type="text" id="blog-title" name="blogTitle" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                        placeholder="请输入博客标题" value="我的博客">
+                                </div>
+                                
+                                <div>
+                                    <label for="blog-description" class="block text-sm font-medium text-gray-700 mb-1">博客描述</label>
+                                    <input type="text" id="blog-description" name="blogDescription"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                        placeholder="请输入博客描述" value="这是一个个人博客，记录生活中的情感和技术学习心得。">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div>
+                                    <label for="author-name" class="block text-sm font-medium text-gray-700 mb-1">作者名称 <span class="text-danger">*</span></label>
+                                    <input type="text" id="author-name" name="authorName" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                        placeholder="请输入作者名称" value="博主">
+                                </div>
+                                
+                                <div>
+                                    <label for="author-email" class="block text-sm font-medium text-gray-700 mb-1">作者邮箱</label>
+                                    <input type="email" id="author-email" name="authorEmail"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                        placeholder="请输入作者邮箱" value="admin@example.com">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">社交媒体设置</h3>
+                            
+                            <div class="space-y-6">
+                                <div>
+                                    <label for="github-url" class="block text-sm font-medium text-gray-700 mb-1">GitHub</label>
+                                    <input type="url" id="github-url" name="githubUrl"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                        placeholder="https://github.com/username" value="">
+                                </div>
+                                
+                                <div>
+                                    <label for="twitter-url" class="block text-sm font-medium text-gray-700 mb-1">Twitter</label>
+                                    <input type="url" id="twitter-url" name="twitterUrl"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                        placeholder="https://twitter.com/username" value="">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-gray-200 flex justify-end space-x-3">
+                            <button type="button" id="reset-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                重置
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors">
+                                <i class="fa fa-save mr-2" aria-hidden="true"></i>
+                                保存设置
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 移动端侧边栏 -->
+    <div id="mobile-sidebar" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden md:hidden">
+        <div class="bg-white h-full w-64 shadow-xl transform transition-transform">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-primary flex items-center">
+                    <i class="fa fa-tachometer mr-2" aria-hidden="true"></i>
+                    <span>博客管理系统</span>
+                </h1>
+                <button id="close-mobile-sidebar" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times text-xl" aria-hidden="true"></i>
+                </button>
+            </div>
+            <nav class="py-4">
+                <a href="index.html" class="sidebar-link block">
+                    <i class="fa fa-home w-6" aria-hidden="true"></i>
+                    <span class="ml-3">控制台</span>
+                </a>
+                <a href="articles.html" class="sidebar-link block">
+                    <i class="fa fa-file-text-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">文章管理</span>
+                </a>
+                <a href="messages.html" class="sidebar-link block">
+                    <i class="fa fa-comments-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">留言管理</span>
+                </a>
+                <a href="categories.html" class="sidebar-link block">
+                    <i class="fa fa-folder-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">分类管理</span>
+                </a>
+                <a href="settings.html" class="sidebar-link active block">
+                    <i class="fa fa-cog w-6" aria-hidden="true"></i>
+                    <span class="ml-3">系统设置</span>
+                </a>
+                <button id="mobile-logout-btn" class="sidebar-link block w-full justify-start">
+                    <i class="fa fa-sign-out w-6" aria-hidden="true"></i>
+                    <span class="ml-3">退出登录</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- 成功提示弹窗 -->
+    <div id="success-toast" class="fixed top-4 right-4 bg-secondary text-white px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full">
+        <div class="flex items-center">
+            <i class="fa fa-check-circle mr-2" aria-hidden="true"></i>
+            <span id="toast-message">设置保存成功</span>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const closeMobileSidebar = document.getElementById('close-mobile-sidebar');
+        const settingsForm = document.getElementById('settings-form');
+        const resetBtn = document.getElementById('reset-btn');
+        const successToast = document.getElementById('success-toast');
+        const toastMessage = document.getElementById('toast-message');
+        const logoutBtn = document.getElementById('logout-btn');
+        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+
+        // 移动端菜单切换
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileSidebar.classList.remove('hidden');
+        });
+
+        closeMobileSidebar.addEventListener('click', () => {
+            mobileSidebar.classList.add('hidden');
+        });
+
+        // 显示成功提示
+        function showToast(message) {
+            toastMessage.textContent = message;
+            successToast.classList.remove('translate-x-full');
+            
+            setTimeout(() => {
+                successToast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        // 重置表单
+        resetBtn.addEventListener('click', () => {
+            if (confirm('确定要重置所有设置吗？这将恢复为默认值。')) {
+                settingsForm.reset();
+                // 这里可以设置默认值
+                document.getElementById('blog-title').value = '我的博客';
+                document.getElementById('blog-description').value = '这是一个个人博客，记录生活中的情感和技术学习心得。';
+                document.getElementById('author-name').value = '博主';
+                document.getElementById('author-email').value = 'admin@example.com';
+                document.getElementById('github-url').value = '';
+                document.getElementById('twitter-url').value = '';
+            }
+        });
+
+        // 表单提交
+        settingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                // 获取表单数据
+                const formData = new FormData(settingsForm);
+                const settings = Object.fromEntries(formData.entries());
+                
+                // 模拟API请求
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // 保存成功
+                showToast('设置保存成功');
+                
+                // 这里应该调用API保存设置
+                console.log('保存的设置:', settings);
+            } catch (err) {
+                console.error('保存设置失败:', err);
+                alert('保存失败，请重试');
+            }
+        });
+
+        // 退出登录
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('确定要退出登录吗？')) {
+                // 这里应该实现退出登录逻辑
+                alert('已退出登录');
+            }
+        });
+
+        mobileLogoutBtn.addEventListener('click', () => {
+            if (confirm('确定要退出登录吗？')) {
+                // 这里应该实现退出登录逻辑
+                alert('已退出登录');
+                mobileSidebar.classList.add('hidden');
+            }
+        });
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            // 这里可以从API加载设置
+            loadSettings();
+        });
+
+        // 加载设置
+        async function loadSettings() {
+            try {
+                // 模拟API请求
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // 模拟从API获取的设置
+                const settings = {
+                    blogTitle: '我的博客',
+                    blogDescription: '这是一个个人博客，记录生活中的情感和技术学习心得。',
+                    authorName: '博主',
+                    authorEmail: 'admin@example.com',
+                    githubUrl: '',
+                    twitterUrl: ''
+                };
+                
+                // 设置表单值
+                document.getElementById('blog-title').value = settings.blogTitle;
+                document.getElementById('blog-description').value = settings.blogDescription;
+                document.getElementById('author-name').value = settings.authorName;
+                document.getElementById('author-email').value = settings.authorEmail;
+                document.getElementById('github-url').value = settings.githubUrl;
+                document.getElementById('twitter-url').value = settings.twitterUrl;
+            } catch (err) {
+                console.error('加载设置失败:', err);
+            }
+        }
+    </script>
+</body>
+</html>
