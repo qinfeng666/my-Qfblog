@@ -275,17 +275,29 @@
                 const formData = new FormData(settingsForm);
                 const settings = Object.fromEntries(formData.entries());
                 
-                // 模拟API请求
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // 调用API保存设置
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '保存失败');
+                }
+                
+                await response.json();
                 
                 // 保存成功
                 showToast('设置保存成功');
                 
-                // 这里应该调用API保存设置
                 console.log('保存的设置:', settings);
             } catch (err) {
                 console.error('保存设置失败:', err);
-                alert('保存失败，请重试');
+                alert(err.message || '保存失败，请重试');
             }
         });
 
@@ -314,28 +326,42 @@
         // 加载设置
         async function loadSettings() {
             try {
-                // 模拟API请求
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // 从API获取设置
+                const response = await fetch('/api/settings');
+                if (!response.ok) {
+                    throw new Error('获取设置失败');
+                }
                 
-                // 模拟从API获取的设置
-                const settings = {
-                    blogTitle: '我的博客',
-                    blogDescription: '这是一个个人博客，记录生活中的情感和技术学习心得。',
-                    authorName: '博主',
-                    authorEmail: 'admin@example.com',
-                    githubUrl: '',
-                    twitterUrl: ''
-                };
+                let settings = await response.json();
+                
+                // 如果没有设置，使用默认值
+                if (!settings || Object.keys(settings).length === 0) {
+                    settings = {
+                        blogTitle: '我的博客',
+                        blogDescription: '这是一个个人博客，记录生活中的情感和技术学习心得。',
+                        authorName: '博主',
+                        authorEmail: 'admin@example.com',
+                        githubUrl: '',
+                        twitterUrl: ''
+                    };
+                }
                 
                 // 设置表单值
-                document.getElementById('blog-title').value = settings.blogTitle;
-                document.getElementById('blog-description').value = settings.blogDescription;
-                document.getElementById('author-name').value = settings.authorName;
-                document.getElementById('author-email').value = settings.authorEmail;
-                document.getElementById('github-url').value = settings.githubUrl;
-                document.getElementById('twitter-url').value = settings.twitterUrl;
+                document.getElementById('blog-title').value = settings.blogTitle || '';
+                document.getElementById('blog-description').value = settings.blogDescription || '';
+                document.getElementById('author-name').value = settings.authorName || '';
+                document.getElementById('author-email').value = settings.authorEmail || '';
+                document.getElementById('github-url').value = settings.githubUrl || '';
+                document.getElementById('twitter-url').value = settings.twitterUrl || '';
             } catch (err) {
                 console.error('加载设置失败:', err);
+                // 使用默认值
+                document.getElementById('blog-title').value = '我的博客';
+                document.getElementById('blog-description').value = '这是一个个人博客，记录生活中的情感和技术学习心得。';
+                document.getElementById('author-name').value = '博主';
+                document.getElementById('author-email').value = 'admin@example.com';
+                document.getElementById('github-url').value = '';
+                document.getElementById('twitter-url').value = '';
             }
         }
     </script>

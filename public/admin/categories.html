@@ -285,14 +285,12 @@
                     </tr>
                 `;
 
-                // 模拟API请求延迟
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                // 模拟分类数据
-                const categories = [
-                    { id: '1', name: '情感记录', slug: 'emotion', articleCount: 5 },
-                    { id: '2', name: '技术分享', slug: 'tech', articleCount: 8 }
-                ];
+                // 从API获取分类数据
+                const response = await fetch('/api/categories');
+                if (!response.ok) {
+                    throw new Error('获取分类失败');
+                }
+                const categories = await response.json();
 
                 // 生成分类表格HTML
                 let categoriesHtml = '';
@@ -316,13 +314,13 @@
                                     <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">${category.slug}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-gray-600">${category.articleCount}</span>
+                                    <span class="text-gray-600">${category.articleCount || 0}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button class="text-primary hover:text-primary/80 mr-3" onclick="editCategory('${category.id}', '${category.name}', '${category.slug}')">
+                                    <button class="text-primary hover:text-primary/80 mr-3" onclick="editCategory('${category._id}', '${category.name}', '${category.slug}')">
                                         <i class="fa fa-pencil" aria-hidden="true"></i> 编辑
                                     </button>
-                                    <button class="text-danger hover:text-danger/80" onclick="deleteCategory('${category.id}', '${category.name}')">
+                                    <button class="text-danger hover:text-danger/80" onclick="deleteCategory('${category._id}', '${category.name}')">
                                         <i class="fa fa-trash" aria-hidden="true"></i> 删除
                                     </button>
                                 </td>
@@ -354,14 +352,24 @@
         }
 
         // 删除分类
-        function deleteCategory(id, name) {
+        async function deleteCategory(id, name) {
             if (confirm(`确定要删除分类 "${name}" 吗？此操作将影响使用该分类的文章。`)) {
-                // 这里应该调用API删除分类
-                // 模拟API请求
-                setTimeout(() => {
+                try {
+                    const response = await fetch(`/api/categories/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('删除失败');
+                    }
+                    
+                    await response.json();
                     alert(`分类 "${name}" 已删除`);
                     loadCategories();
-                }, 500);
+                } catch (err) {
+                    console.error('删除分类失败:', err);
+                    alert('删除失败，请重试');
+                }
             }
         }
 
@@ -379,8 +387,35 @@
             }
             
             try {
-                // 模拟API请求
-                await new Promise(resolve => setTimeout(resolve, 500));
+                const categoryData = { name, slug };
+                let response;
+                
+                if (id) {
+                    // 更新分类
+                    response = await fetch(`/api/categories/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(categoryData)
+                    });
+                } else {
+                    // 创建分类
+                    response = await fetch('/api/categories', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(categoryData)
+                    });
+                }
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '保存失败');
+                }
+                
+                await response.json();
                 
                 const isEdit = !!id;
                 const message = isEdit ? `分类 "${name}" 已更新` : `分类 "${name}" 已创建`;
@@ -391,7 +426,7 @@
                 loadCategories();
             } catch (err) {
                 console.error('保存分类失败:', err);
-                alert('保存失败，请重试');
+                alert(err.message || '保存失败，请重试');
             }
         });
 

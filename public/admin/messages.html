@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言管理 - 博客管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                        danger: '#EF4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .sidebar-link {
+                @apply flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-200;
+            }
+            .sidebar-link.active {
+                @apply bg-primary text-white;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- 侧边栏 -->
+        <aside class="bg-white w-64 shadow-md hidden md:block">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-primary flex items-center">
+                    <i class="fa fa-tachometer mr-2" aria-hidden="true"></i>
+                    <span>博客管理系统</span>
+                </h1>
+            </div>
+            <nav class="py-4">
+                <a href="index.html" class="sidebar-link">
+                    <i class="fa fa-home w-6" aria-hidden="true"></i>
+                    <span class="ml-3">控制台</span>
+                </a>
+                <a href="articles.html" class="sidebar-link">
+                    <i class="fa fa-file-text-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">文章管理</span>
+                </a>
+                <a href="messages.html" class="sidebar-link active">
+                    <i class="fa fa-comments-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">留言管理</span>
+                </a>
+                <a href="categories.html" class="sidebar-link">
+                    <i class="fa fa-folder-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">分类管理</span>
+                </a>
+                <a href="settings.html" class="sidebar-link">
+                    <i class="fa fa-cog w-6" aria-hidden="true"></i>
+                    <span class="ml-3">系统设置</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full border-t border-gray-200">
+                <button id="logout-btn" class="sidebar-link w-full justify-start">
+                    <i class="fa fa-sign-out w-6" aria-hidden="true"></i>
+                    <span class="ml-3">退出登录</span>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- 主内容区 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航 -->
+            <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+                <button id="mobile-menu-toggle" class="md:hidden text-gray-600 focus:outline-none">
+                    <i class="fa fa-bars text-xl" aria-hidden="true"></i>
+                </button>
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-4">欢迎回来，管理员</span>
+                    <img src="https://picsum.photos/id/64/40/40" alt="管理员头像" class="w-8 h-8 rounded-full">
+                </div>
+            </header>
+            
+            <!-- 页面内容 -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <div class="mb-6 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold">留言管理</h2>
+                        <p class="text-gray-600 mt-1">查看和管理所有用户留言</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button id="delete-all-btn" class="inline-flex items-center px-4 py-2 border border-danger rounded-lg text-danger hover:bg-danger/5 transition-colors">
+                            <i class="fa fa-trash mr-2" aria-hidden="true"></i>
+                            批量删除
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 留言列表 -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <input type="checkbox" id="select-all" class="rounded text-primary focus:ring-primary">
+                                    </th>
+                                    <th class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">姓名</th>
+                                    <th class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">邮箱</th>
+                                    <th class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">留言内容</th>
+                                    <th class="py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">留言时间</th>
+                                    <th class="py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="messages-list">
+                                <!-- 留言列表将通过JavaScript动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 空状态提示 -->
+                    <div id="empty-state" class="text-center py-12 hidden">
+                        <i class="fa fa-comments-o text-6xl text-gray-300 mb-4" aria-hidden="true"></i>
+                        <h3 class="text-xl font-semibold text-gray-500 mb-2">暂无留言</h3>
+                        <p class="text-gray-400">当有用户提交留言时，将会显示在这里</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 移动端侧边栏 -->
+    <div id="mobile-sidebar" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden md:hidden">
+        <div class="bg-white h-full w-64 shadow-xl transform transition-transform">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-primary flex items-center">
+                    <i class="fa fa-tachometer mr-2" aria-hidden="true"></i>
+                    <span>博客管理系统</span>
+                </h1>
+                <button id="close-mobile-sidebar" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times text-xl" aria-hidden="true"></i>
+                </button>
+            </div>
+            <nav class="py-4">
+                <a href="index.html" class="sidebar-link block">
+                    <i class="fa fa-home w-6" aria-hidden="true"></i>
+                    <span class="ml-3">控制台</span>
+                </a>
+                <a href="articles.html" class="sidebar-link block">
+                    <i class="fa fa-file-text-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">文章管理</span>
+                </a>
+                <a href="messages.html" class="sidebar-link active block">
+                    <i class="fa fa-comments-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">留言管理</span>
+                </a>
+                <a href="categories.html" class="sidebar-link block">
+                    <i class="fa fa-folder-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">分类管理</span>
+                </a>
+                <a href="settings.html" class="sidebar-link block">
+                    <i class="fa fa-cog w-6" aria-hidden="true"></i>
+                    <span class="ml-3">系统设置</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full border-t border-gray-200">
+                <button id="mobile-logout-btn" class="sidebar-link w-full justify-start">
+                    <i class="fa fa-sign-out w-6" aria-hidden="true"></i>
+                    <span class="ml-3">退出登录</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知提示组件 -->
+    <div id="notification" class="fixed top-4 right-4 bg-white shadow-lg rounded-lg p-4 transform translate-x-full transition-transform duration-300 flex items-center z-50 max-w-md">
+        <div id="notification-icon" class="mr-3 text-primary text-xl">
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+        </div>
+        <div>
+            <p id="notification-message" class="text-gray-800"></p>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const messagesListEl = document.getElementById('messages-list');
+        const emptyStateEl = document.getElementById('empty-state');
+        const selectAllEl = document.getElementById('select-all');
+        const deleteAllBtn = document.getElementById('delete-all-btn');
+        const notificationEl = document.getElementById('notification');
+        const notificationMessageEl = document.getElementById('notification-message');
+        const notificationIconEl = document.getElementById('notification-icon');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const closeMobileSidebar = document.getElementById('close-mobile-sidebar');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const logoutBtn = document.getElementById('logout-btn');
+        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+
+        // 显示通知
+        function showNotification(message, isSuccess = true) {
+            notificationMessageEl.textContent = message;
+            notificationIconEl.className = isSuccess
+                ? 'mr-3 text-primary text-xl' 
+                : 'mr-3 text-danger text-xl';
+            notificationIconEl.innerHTML = isSuccess
+                ? '<i class="fa fa-check-circle" aria-hidden="true"></i>'
+                : '<i class="fa fa-exclamation-circle" aria-hidden="true"></i>';
+            notificationEl.classList.remove('translate-x-full');
+            
+            // 3秒后隐藏通知
+            setTimeout(() => {
+                notificationEl.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+        // 加载留言列表
+        async function loadMessages() {
+            try {
+                const response = await fetch('/api/messages');
+                if (!response.ok) {
+                    throw new Error('获取留言列表失败');
+                }
+                
+                const messages = await response.json();
+                
+                // 显示或隐藏空状态
+                if (messages.length === 0) {
+                    messagesListEl.innerHTML = '';
+                    emptyStateEl.classList.remove('hidden');
+                    deleteAllBtn.disabled = true;
+                    deleteAllBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    return;
+                }
+                
+                emptyStateEl.classList.add('hidden');
+                deleteAllBtn.disabled = false;
+                deleteAllBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // 生成留言列表HTML
+                const html = messages.map(message => `
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <input type="checkbox" class="message-checkbox rounded text-primary focus:ring-primary" data-id="${message._id}">
+                        </td>
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <div class="font-medium text-gray-900">${message.name || '匿名用户'}</div>
+                        </td>
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <div class="text-gray-600">${message.email || '-'}</div>
+                        </td>
+                        <td class="py-4 px-4 whitespace-normal">
+                            <div class="text-gray-600 max-w-md">${message.content}</div>
+                        </td>
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            <div class="text-gray-500 text-sm">${formatDate(message.createdAt)}</div>
+                        </td>
+                        <td class="py-4 px-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="delete-message text-danger hover:text-danger/80 transition-colors" data-id="${message._id}">
+                                <i class="fa fa-trash mr-1" aria-hidden="true"></i> 删除
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                messagesListEl.innerHTML = html;
+                
+                // 重置全选框
+                selectAllEl.checked = false;
+                
+                // 添加删除事件监听
+                document.querySelectorAll('.delete-message').forEach(btn => {
+                    btn.addEventListener('click', handleDeleteMessage);
+                });
+                
+                // 添加复选框事件监听
+                document.querySelectorAll('.message-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', checkSelectAll);
+                });
+                
+            } catch (err) {
+                console.error('加载留言列表失败:', err);
+                showNotification(`加载失败: ${err.message}`, false);
+            }
+        }
+
+        // 删除单个留言
+        async function handleDeleteMessage(e) {
+            const messageId = e.target.closest('.delete-message').getAttribute('data-id');
+            
+            if (confirm('确定要删除这条留言吗？此操作不可恢复。')) {
+                try {
+                    const response = await fetch(`/api/messages/${messageId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || '删除失败');
+                    }
+                    
+                    showNotification('留言删除成功');
+                    loadMessages(); // 重新加载列表
+                    
+                } catch (err) {
+                    console.error('删除留言失败:', err);
+                    showNotification(`删除失败: ${err.message}`, false);
+                }
+            }
+        }
+
+        // 批量删除留言
+        async function handleDeleteAll() {
+            const selectedIds = Array.from(document.querySelectorAll('.message-checkbox:checked'))
+                .map(checkbox => checkbox.getAttribute('data-id'));
+            
+            if (selectedIds.length === 0) {
+                showNotification('请至少选择一条留言', false);
+                return;
+            }
+            
+            if (confirm(`确定要删除选中的 ${selectedIds.length} 条留言吗？此操作不可恢复。`)) {
+                try {
+                    // 逐个删除留言
+                    const deletePromises = selectedIds.map(id => 
+                        fetch(`/api/messages/${id}`, { method: 'DELETE' })
+                    );
+                    
+                    const responses = await Promise.all(deletePromises);
+                    
+                    // 检查是否所有删除都成功
+                    const allSuccessful = responses.every(response => response.ok);
+                    
+                    if (allSuccessful) {
+                        showNotification(`成功删除 ${selectedIds.length} 条留言`);
+                        loadMessages(); // 重新加载列表
+                    } else {
+                        throw new Error('部分留言删除失败');
+                    }
+                    
+                } catch (err) {
+                    console.error('批量删除留言失败:', err);
+                    showNotification(`删除失败: ${err.message}`, false);
+                }
+            }
+        }
+
+        // 检查全选状态
+        function checkSelectAll() {
+            const totalCheckboxes = document.querySelectorAll('.message-checkbox').length;
+            const checkedCheckboxes = document.querySelectorAll('.message-checkbox:checked').length;
+            
+            selectAllEl.checked = totalCheckboxes > 0 && totalCheckboxes === checkedCheckboxes;
+        }
+
+        // 切换全选
+        function toggleSelectAll() {
+            const isChecked = selectAllEl.checked;
+            document.querySelectorAll('.message-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        }
+
+        // 打开移动端侧边栏
+        function openMobileSidebar() {
+            mobileSidebar.classList.remove('hidden');
+            setTimeout(() => {
+                mobileSidebar.querySelector('div').classList.remove('-translate-x-full');
+            }, 10);
+        }
+
+        // 关闭移动端侧边栏
+        function closeMobileSidebarMenu() {
+            mobileSidebar.querySelector('div').classList.add('-translate-x-full');
+            setTimeout(() => {
+                mobileSidebar.classList.add('hidden');
+            }, 300);
+        }
+
+        // 退出登录
+        function handleLogout() {
+            if (confirm('确定要退出登录吗？')) {
+                // 实际项目中这里应该清除登录状态
+                showNotification('已成功退出登录');
+                setTimeout(() => {
+                    // 跳转到首页
+                    window.location.href = '/';
+                }, 1000);
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化移动端侧边栏样式
+            mobileSidebar.querySelector('div').classList.add('-translate-x-full', 'transition-transform', 'duration-300');
+            
+            // 事件监听
+            mobileMenuToggle.addEventListener('click', openMobileSidebar);
+            closeMobileSidebar.addEventListener('click', closeMobileSidebarMenu);
+            mobileSidebar.addEventListener('click', (e) => {
+                if (e.target === mobileSidebar) {
+                    closeMobileSidebarMenu();
+                }
+            });
+            logoutBtn.addEventListener('click', handleLogout);
+            mobileLogoutBtn.addEventListener('click', handleLogout);
+            selectAllEl.addEventListener('change', toggleSelectAll);
+            deleteAllBtn.addEventListener('click', handleDeleteAll);
+            
+            // 加载留言列表
+            loadMessages();
+        });
+    </script>
+</body>
+</html>

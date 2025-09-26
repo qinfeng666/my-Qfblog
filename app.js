@@ -141,6 +141,119 @@ app.delete('/api/articles/:id', async (req, res) => {
   }
 });
 
+// API路由 - 分类相关
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await db.collection('categories').find().sort({ createdAt: -1 }).toArray();
+    res.json(categories);
+  } catch (err) {
+    console.error('获取分类失败:', err);
+    res.status(500).json({ error: '获取分类失败' });
+  }
+});
+
+app.post('/api/categories', async (req, res) => {
+  try {
+    const category = {
+      ...req.body,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const result = await db.collection('categories').insertOne(category);
+    res.status(201).json({ ...category, _id: result.insertedId });
+  } catch (err) {
+    console.error('创建分类失败:', err);
+    res.status(500).json({ error: '创建分类失败' });
+  }
+});
+
+app.put('/api/categories/:id', async (req, res) => {
+  try {
+    // 验证并转换ID
+    let categoryId;
+    try {
+      categoryId = new ObjectId(req.params.id);
+    } catch (err) {
+      return res.status(400).json({ error: '无效的分类ID格式' });
+    }
+    
+    const category = {
+      ...req.body,
+      updatedAt: new Date()
+    };
+    
+    const result = await db.collection('categories').updateOne(
+      { _id: categoryId },
+      { $set: category }
+    );
+    
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ error: '分类不存在或未做任何修改' });
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('更新分类失败:', err);
+    res.status(500).json({ error: '更新分类失败' });
+  }
+});
+
+app.delete('/api/categories/:id', async (req, res) => {
+  try {
+    // 验证并转换ID
+    let categoryId;
+    try {
+      categoryId = new ObjectId(req.params.id);
+    } catch (err) {
+      return res.status(400).json({ error: '无效的分类ID格式' });
+    }
+    
+    const result = await db.collection('categories').deleteOne({ _id: categoryId });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: '分类不存在' });
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('删除分类失败:', err);
+    res.status(500).json({ error: '删除分类失败' });
+  }
+});
+
+// API路由 - 设置相关
+app.get('/api/settings', async (req, res) => {
+  try {
+    const settings = await db.collection('settings').findOne({ _id: 'blog_settings' });
+    res.json(settings || {});
+  } catch (err) {
+    console.error('获取设置失败:', err);
+    res.status(500).json({ error: '获取设置失败' });
+  }
+});
+
+app.post('/api/settings', async (req, res) => {
+  try {
+    const settings = {
+      _id: 'blog_settings',
+      ...req.body,
+      updatedAt: new Date()
+    };
+    
+    await db.collection('settings').updateOne(
+      { _id: 'blog_settings' },
+      { $set: settings },
+      { upsert: true }
+    );
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('保存设置失败:', err);
+    res.status(500).json({ error: '保存设置失败' });
+  }
+});
+
 // API路由 - 留言相关
 app.get('/api/messages', async (req, res) => {
   try {
@@ -167,9 +280,23 @@ app.post('/api/messages', async (req, res) => {
 
 app.delete('/api/messages/:id', async (req, res) => {
   try {
-    await db.collection('messages').deleteOne({ _id: req.params.id });
+    // 验证并转换ID
+    let messageId;
+    try {
+      messageId = new ObjectId(req.params.id);
+    } catch (err) {
+      return res.status(400).json({ error: '无效的留言ID格式' });
+    }
+    
+    const result = await db.collection('messages').deleteOne({ _id: messageId });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: '留言不存在' });
+    }
+    
     res.json({ success: true });
   } catch (err) {
+    console.error('删除留言失败:', err);
     res.status(500).json({ error: '删除留言失败' });
   }
 });
