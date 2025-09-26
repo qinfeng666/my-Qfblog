@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章详情 - 我的博客</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .article-content h1 {
+                @apply text-2xl font-bold my-6;
+            }
+            .article-content h2 {
+                @apply text-xl font-bold my-5;
+            }
+            .article-content h3 {
+                @apply text-lg font-bold my-4;
+            }
+            .article-content p {
+                @apply my-4 leading-relaxed;
+            }
+            .article-content ul, .article-content ol {
+                @apply my-4 ml-6;
+            }
+            .article-content ul {
+                @apply list-disc;
+            }
+            .article-content ol {
+                @apply list-decimal;
+            }
+            .article-content a {
+                @apply text-primary hover:underline;
+            }
+            .article-content blockquote {
+                @apply border-l-4 border-gray-300 pl-4 italic my-4 text-gray-700;
+            }
+            .article-content pre {
+                @apply bg-gray-100 p-4 rounded my-4 overflow-x-auto;
+            }
+            .article-content code {
+                @apply bg-gray-100 px-1 rounded;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-primary flex items-center">
+                <i class="fa fa-pencil-square-o mr-2" aria-hidden="true"></i>
+                <span>我的博客</span>
+            </a>
+            
+            <nav class="hidden md:flex space-x-6">
+                <a href="/" class="text-gray-700 hover:text-primary transition-colors">首页</a>
+                <a href="/category/emotion" class="text-gray-700 hover:text-primary transition-colors">情感记录</a>
+                <a href="/category/tech" class="text-gray-700 hover:text-primary transition-colors">技术分享</a>
+                <a href="/messages" class="text-gray-700 hover:text-primary transition-colors">留言板</a>
+                <a href="/admin" class="text-gray-700 hover:text-primary transition-colors">管理后台</a>
+            </nav>
+            
+            <button id="mobile-menu-btn" class="md:hidden text-gray-600">
+                <i class="fa fa-bars text-xl" aria-hidden="true"></i>
+            </button>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="/" class="py-2 text-gray-700 hover:text-primary transition-colors">首页</a>
+                <a href="/category/emotion" class="py-2 text-gray-700 hover:text-primary transition-colors">情感记录</a>
+                <a href="/category/tech" class="py-2 text-gray-700 hover:text-primary transition-colors">技术分享</a>
+                <a href="/messages" class="py-2 text-gray-700 hover:text-primary transition-colors">留言板</a>
+                <a href="/admin" class="py-2 text-gray-700 hover:text-primary transition-colors">管理后台</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- 左侧文章内容 -->
+            <article class="lg:w-3/4">
+                <div class="bg-white rounded-lg shadow-md p-6 md:p-8 mb-8">
+                    <div id="article-header" class="mb-8 pb-6 border-b border-gray-200">
+                        <!-- 文章标题和元数据将通过JavaScript加载 -->
+                        <div class="flex justify-center py-12">
+                            <i class="fa fa-spinner fa-spin text-3xl text-primary" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    
+                    <div id="article-content" class="article-content">
+                        <!-- 文章内容将通过JavaScript加载 -->
+                    </div>
+                </div>
+                
+                <!-- 相关文章 -->
+                <div class="bg-white rounded-lg shadow-md p-6 md:p-8">
+                    <h3 class="text-xl font-bold mb-6">相关文章</h3>
+                    <div id="related-articles" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- 相关文章将通过JavaScript加载 -->
+                    </div>
+                </div>
+            </article>
+            
+            <!-- 右侧边栏 -->
+            <aside class="lg:w-1/4">
+                <div class="bg-white rounded-lg shadow-md p-6 sticky top-24">
+                    <h3 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">文章分类</h3>
+                    <ul class="space-y-1 mb-6">
+                        <li><a href="/category/emotion" class="block py-2 px-4 rounded hover:bg-primary hover:text-white transition-colors">情感记录</a></li>
+                        <li><a href="/category/tech" class="block py-2 px-4 rounded hover:bg-primary hover:text-white transition-colors">技术分享</a></li>
+                    </ul>
+                    
+                    <h3 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">最新文章</h3>
+                    <div id="latest-articles" class="space-y-4">
+                        <!-- 最新文章将通过JavaScript加载 -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12 mt-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">关于博客</h3>
+                    <p class="text-gray-400">这是一个个人博客，记录生活中的情感和技术学习心得。</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">快速链接</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/" class="hover:text-white transition-colors">首页</a></li>
+                        <li><a href="/category/emotion" class="hover:text-white transition-colors">情感记录</a></li>
+                        <li><a href="/category/tech" class="hover:text-white transition-colors">技术分享</a></li>
+                        <li><a href="/messages" class="hover:text-white transition-colors">留言板</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">联系我</h3>
+                    <div class="flex space-x-4 text-xl">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-github" aria-hidden="true"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-twitter" aria-hidden="true"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-envelope" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-500">
+                <p>&copy; 2023 我的博客. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // DOM元素
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const articleHeader = document.getElementById('article-header');
+        const articleContent = document.getElementById('article-content');
+        const relatedArticles = document.getElementById('related-articles');
+        const latestArticles = document.getElementById('latest-articles');
+        
+        // 移动端菜单切换
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // 获取当前文章ID
+        function getArticleId() {
+            const path = window.location.pathname;
+            return path.split('/')[2];
+        }
+        
+        // 加载文章详情
+        async function loadArticle() {
+            try {
+                const articleId = getArticleId();
+                if (!articleId) {
+                    throw new Error('文章ID不存在');
+                }
+                
+                // 发送请求
+                const response = await fetch(`/api/articles/${articleId}`);
+                if (!response.ok) throw new Error('获取文章失败');
+                
+                const article = await response.json();
+                
+                // 更新页面标题
+                document.title = `${article.title} - 我的博客`;
+                
+                // 格式化日期
+                const date = new Date(article.createdAt);
+                const formattedDate = date.toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // 分类名称
+                const categoryName = article.category === 'emotion' ? '情感记录' : '技术分享';
+                
+                // 更新文章头部
+                articleHeader.innerHTML = `
+                    <h1 class="text-3xl md:text-4xl font-bold mb-4">${article.title}</h1>
+                    <div class="flex flex-wrap items-center text-sm text-gray-500 gap-y-2">
+                        <span class="flex items-center mr-4">
+                            <i class="fa fa-calendar-o mr-1" aria-hidden="true"></i>
+                            ${formattedDate}
+                        </span>
+                        <span class="flex items-center mr-4">
+                            <i class="fa fa-folder-o mr-1" aria-hidden="true"></i>
+                            <a href="/category/${article.category}" class="hover:text-primary transition-colors">${categoryName}</a>
+                        </span>
+                        ${article.tags ? `
+                            <span class="flex items-center flex-wrap">
+                                <i class="fa fa-tags mr-1" aria-hidden="true"></i>
+                                ${article.tags.split(',').map(tag => 
+                                    `<a href="#" class="hover:text-primary transition-colors mr-2">${tag.trim()}</a>`
+                                ).join('')}
+                            </span>
+                        ` : ''}
+                    </div>
+                `;
+                
+                // 更新文章内容
+                articleContent.innerHTML = article.contentHtml || '<p>文章内容加载失败</p>';
+                
+                // 加载相关文章
+                loadRelatedArticles(article.category, articleId);
+                
+            } catch (err) {
+                console.error('加载文章失败:', err);
+                articleHeader.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                        <p>加载文章失败: ${err.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 加载相关文章
+        async function loadRelatedArticles(category, currentArticleId) {
+            try {
+                const response = await fetch(`/api/articles?category=${category}`);
+                if (!response.ok) throw new Error('获取相关文章失败');
+                
+                let articles = await response.json();
+                
+                // 排除当前文章，并取前2篇
+                articles = articles.filter(article => article._id !== currentArticleId).slice(0, 2);
+                
+                if (articles.length === 0) {
+                    relatedArticles.innerHTML = '<p class="col-span-full text-center text-gray-500">暂无相关文章</p>';
+                    return;
+                }
+                
+                let html = '';
+                articles.forEach(article => {
+                    // 截取标题
+                    const shortTitle = article.title.length > 30 
+                        ? article.title.substring(0, 30) + '...' 
+                        : article.title;
+                    
+                    html += `
+                        <a href="/article/${article._id}" class="group">
+                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                <h4 class="font-medium text-gray-800 group-hover:text-primary transition-colors">${shortTitle}</h4>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    <i class="fa fa-calendar-o mr-1" aria-hidden="true"></i>
+                                    ${new Date(article.createdAt).toLocaleDateString()}
+                                </p>
+                            </div>
+                        </a>
+                    `;
+                });
+                
+                relatedArticles.innerHTML = html;
+                
+            } catch (err) {
+                console.error('加载相关文章失败:', err);
+            }
+        }
+        
+        // 加载最新文章
+        async function loadLatestArticles() {
+            try {
+                const response = await fetch('/api/articles');
+                if (!response.ok) throw new Error('获取最新文章失败');
+                
+                const articles = await response.json();
+                
+                // 取前3篇最新文章
+                const latest = articles.slice(0, 3);
+                
+                if (latest.length === 0) {
+                    latestArticles.innerHTML = '<p class="text-center text-gray-500">暂无文章</p>';
+                    return;
+                }
+                
+                let html = '';
+                latest.forEach(article => {
+                    // 截取标题
+                    const shortTitle = article.title.length > 25 
+                        ? article.title.substring(0, 25) + '...' 
+                        : article.title;
+                    
+                    html += `
+                        <a href="/article/${article._id}" class="flex group">
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-medium text-gray-800 group-hover:text-primary transition-colors truncate">${shortTitle}</h4>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    ${new Date(article.createdAt).toLocaleDateString()}
+                                </p>
+                            </div>
+                            <i class="fa fa-angle-right text-gray-400 mt-1 ml-2 group-hover:text-primary transition-colors"></i>
+                        </a>
+                    `;
+                });
+                
+                latestArticles.innerHTML = html;
+                
+            } catch (err) {
+                console.error('加载最新文章失败:', err);
+            }
+        }
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            loadArticle();
+            loadLatestArticles();
+        });
+    </script>
+</body>
+</html>
+    

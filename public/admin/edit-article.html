@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑文章 - 博客管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        dark: '#1F2937',
+                        light: '#F9FAFB',
+                        danger: '#EF4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .sidebar-link {
+                @apply flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white transition-colors duration-200;
+            }
+            .sidebar-link.active {
+                @apply bg-primary text-white;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- 侧边栏 -->
+        <aside class="bg-white w-64 shadow-md hidden md:block">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-primary flex items-center">
+                    <i class="fa fa-tachometer mr-2" aria-hidden="true"></i>
+                    <span>博客管理系统</span>
+                </h1>
+            </div>
+            <nav class="py-4">
+                <a href="index.html" class="sidebar-link">
+                    <i class="fa fa-home w-6" aria-hidden="true"></i>
+                    <span class="ml-3">控制台</span>
+                </a>
+                <a href="articles.html" class="sidebar-link active">
+                    <i class="fa fa-file-text-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">文章管理</span>
+                </a>
+                <a href="messages.html" class="sidebar-link">
+                    <i class="fa fa-comments-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">留言管理</span>
+                </a>
+                <a href="categories.html" class="sidebar-link">
+                    <i class="fa fa-folder-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">分类管理</span>
+                </a>
+                <a href="settings.html" class="sidebar-link">
+                    <i class="fa fa-cog w-6" aria-hidden="true"></i>
+                    <span class="ml-3">系统设置</span>
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-full border-t border-gray-200">
+                <button id="logout-btn" class="sidebar-link w-full justify-start">
+                    <i class="fa fa-sign-out w-6" aria-hidden="true"></i>
+                    <span class="ml-3">退出登录</span>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- 主内容区 -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航 -->
+            <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+                <button id="mobile-menu-toggle" class="md:hidden text-gray-600 focus:outline-none">
+                    <i class="fa fa-bars text-xl" aria-hidden="true"></i>
+                </button>
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-4">欢迎回来，管理员</span>
+                    <img src="https://picsum.photos/id/64/40/40" alt="管理员头像" class="w-8 h-8 rounded-full">
+                </div>
+            </header>
+            
+            <!-- 页面内容 -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <div class="mb-6 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold" id="page-title">编辑文章</h2>
+                        <p class="text-gray-600 mt-1">创建或修改博客文章</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <a href="articles.html" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            <i class="fa fa-arrow-left mr-2" aria-hidden="true"></i>
+                            返回列表
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 文章编辑表单 -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <form id="article-form" class="space-y-6">
+                        <input type="hidden" id="article-id" value="">
+                        
+                        <div>
+                            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">文章标题 <span class="text-danger">*</span></label>
+                            <input type="text" id="title" name="title" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                placeholder="请输入文章标题">
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="category" class="block text-sm font-medium text-gray-700 mb-1">文章分类 <span class="text-danger">*</span></label>
+                                <select id="category" name="category" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <option value="">请选择分类</option>
+                                    <option value="emotion">情感记录</option>
+                                    <option value="tech">技术分享</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">标签</label>
+                                <input type="text" id="tags" name="tags"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                    placeholder="请输入标签，多个标签用逗号分隔">
+                                <p class="text-xs text-gray-500 mt-1">例如：JavaScript,前端,编程</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="content" class="block text-sm font-medium text-gray-700 mb-1">文章内容 <span class="text-danger">*</span></label>
+                            <textarea id="content" name="content" rows="15" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                placeholder="请输入文章内容..."></textarea>
+                            <p class="text-xs text-gray-500 mt-1">支持 Markdown 格式编写</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">发布状态</label>
+                                <select id="status" name="status"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <option value="published">已发布</option>
+                                    <option value="draft">草稿</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-gray-200 flex justify-end space-x-3">
+                            <button type="button" id="preview-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                <i class="fa fa-eye mr-2" aria-hidden="true"></i>
+                                预览
+                            </button>
+                            <button type="button" id="save-draft-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                <i class="fa fa-save mr-2" aria-hidden="true"></i>
+                                保存草稿
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors">
+                                <i class="fa fa-paper-plane mr-2" aria-hidden="true"></i>
+                                发布文章
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 移动端侧边栏 -->
+    <div id="mobile-sidebar" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden md:hidden">
+        <div class="bg-white h-full w-64 shadow-xl transform transition-transform">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-primary flex items-center">
+                    <i class="fa fa-tachometer mr-2" aria-hidden="true"></i>
+                    <span>博客管理系统</span>
+                </h1>
+                <button id="close-mobile-sidebar" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times text-xl" aria-hidden="true"></i>
+                </button>
+            </div>
+            <nav class="py-4">
+                <a href="index.html" class="sidebar-link block">
+                    <i class="fa fa-home w-6" aria-hidden="true"></i>
+                    <span class="ml-3">控制台</span>
+                </a>
+                <a href="articles.html" class="sidebar-link active block">
+                    <i class="fa fa-file-text-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">文章管理</span>
+                </a>
+                <a href="messages.html" class="sidebar-link block">
+                    <i class="fa fa-comments-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">留言管理</span>
+                </a>
+                <a href="categories.html" class="sidebar-link block">
+                    <i class="fa fa-folder-o w-6" aria-hidden="true"></i>
+                    <span class="ml-3">分类管理</span>
+                </a>
+                <a href="settings.html" class="sidebar-link block">
+                    <i class="fa fa-cog w-6" aria-hidden="true"></i>
+                    <span class="ml-3">系统设置</span>
+                </a>
+                <a href="#" id="mobile-logout-btn" class="sidebar-link block">
+                    <i class="fa fa-sign-out w-6" aria-hidden="true"></i>
+                    <span class="ml-3">退出登录</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div id="preview-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-xl font-bold">文章预览</h3>
+                <button id="close-preview" class="text-gray-500 hover:text-gray-800 transition-colors">
+                    <i class="fa fa-times text-xl" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="p-6" id="preview-content">
+                <!-- 预览内容将在这里显示 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知提示 -->
+    <div id="notification" class="fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center z-50">
+        <i id="notification-icon" class="mr-2 text-xl"></i>
+        <span id="notification-message"></span>
+    </div>
+
+    <script>
+        // DOM元素
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const closeMobileSidebar = document.getElementById('close-mobile-sidebar');
+        const logoutBtn = document.getElementById('logout-btn');
+        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+        const articleForm = document.getElementById('article-form');
+        const previewBtn = document.getElementById('preview-btn');
+        const saveDraftBtn = document.getElementById('save-draft-btn');
+        const previewModal = document.getElementById('preview-modal');
+        const closePreview = document.getElementById('close-preview');
+        const previewContent = document.getElementById('preview-content');
+        const pageTitle = document.getElementById('page-title');
+        const articleIdInput = document.getElementById('article-id');
+        const statusSelect = document.getElementById('status');
+        const notification = document.getElementById('notification');
+        const notificationIcon = document.getElementById('notification-icon');
+        const notificationMessage = document.getElementById('notification-message');
+        
+        // Markdown编辑器
+        let simplemde;
+        
+        // 移动端侧边栏控制
+        function openMobileSidebar() {
+            mobileSidebar.classList.remove('hidden');
+            setTimeout(() => {
+                mobileSidebar.querySelector('div').classList.add('translate-x-0');
+                mobileSidebar.querySelector('div').classList.remove('-translate-x-full');
+            }, 10);
+        }
+        
+        function closeMobileSidebarMenu() {
+            mobileSidebar.querySelector('div').classList.remove('translate-x-0');
+            mobileSidebar.querySelector('div').classList.add('-translate-x-full');
+            setTimeout(() => {
+                mobileSidebar.classList.add('hidden');
+            }, 300);
+        }
+        
+        // 显示通知
+        function showNotification(message, isSuccess = true) {
+            notificationMessage.textContent = message;
+            notificationIcon.className = isSuccess 
+                ? 'fa fa-check-circle text-green-500 mr-2 text-xl' 
+                : 'fa fa-exclamation-circle text-red-500 mr-2 text-xl';
+            notification.className = `fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg transform translate-y-0 opacity-100 transition-all duration-300 flex items-center z-50 ${
+                isSuccess ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+            }`;
+            
+            // 3秒后隐藏
+            setTimeout(() => {
+                notification.className = 'fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center z-50';
+            }, 3000);
+        }
+        
+        // 初始化Markdown编辑器
+        function initMarkdownEditor() {
+            simplemde = new SimpleMDE({
+                element: document.getElementById("content"),
+                spellChecker: false,
+                toolbar: [
+                    "bold", "italic", "strikethrough", "|",
+                    "heading-1", "heading-2", "heading-3", "|",
+                    "code", "quote", "|",
+                    "unordered-list", "ordered-list", "|",
+                    "link", "image", "|",
+                    "preview", "side-by-side", "fullscreen", "|"
+                ]
+            });
+        }
+        
+        // 加载文章数据（编辑模式）
+        async function loadArticleData(articleId) {
+            try {
+                // 显示加载状态
+                showNotification('正在加载文章...');
+                
+                // 获取文章数据
+                const response = await fetch(`/api/articles/${articleId}`);
+                if (!response.ok) throw new Error('获取文章失败');
+                
+                const article = await response.json();
+                
+                // 填充表单
+                document.getElementById('title').value = article.title || '';
+                document.getElementById('category').value = article.category || '';
+                document.getElementById('tags').value = article.tags || '';
+                statusSelect.value = article.status || 'published';
+                
+                // 设置Markdown内容
+                if (article.content) {
+                    simplemde.value(article.content);
+                }
+                
+                // 更新页面标题
+                pageTitle.textContent = '编辑文章';
+                
+                showNotification('文章加载成功');
+                
+            } catch (err) {
+                console.error('加载文章失败:', err);
+                showNotification(`加载失败: ${err.message}`, false);
+            }
+        }
+        
+        // 显示预览
+        function showPreview() {
+            const title = document.getElementById('title').value;
+            const content = simplemde.value();
+            
+            if (!title || !content) {
+                showNotification('请填写文章标题和内容', false);
+                return;
+            }
+            
+            // 转换Markdown为HTML
+            const contentHtml = marked.parse(content);
+            
+            // 构建预览内容
+            previewContent.innerHTML = `
+                <h1 class="text-3xl font-bold mb-6">${title}</h1>
+                <div class="prose max-w-none">${contentHtml}</div>
+            `;
+            
+            // 显示预览模态框
+            previewModal.classList.remove('hidden');
+        }
+        
+        // 关闭预览
+        function closePreviewModal() {
+            previewModal.classList.add('hidden');
+        }
+        
+        // 保存为草稿
+        async function saveAsDraft() {
+            // 设置状态为草稿
+            statusSelect.value = 'draft';
+            // 提交表单
+            await submitForm('草稿保存成功');
+        }
+        
+        // 提交表单
+        async function submitForm(successMessage) {
+            const title = document.getElementById('title').value;
+            const category = document.getElementById('category').value;
+            const content = simplemde.value();
+            const tags = document.getElementById('tags').value;
+            const status = statusSelect.value;
+            const articleId = articleIdInput.value;
+            
+            // 验证表单
+            if (!title || !category || !content) {
+                showNotification('请填写必填字段', false);
+                return;
+            }
+            
+            // 构建文章数据
+            const articleData = {
+                title,
+                category,
+                content,
+                tags,
+                status
+            };
+            
+            try {
+                let url = '/api/articles';
+                let method = 'POST';
+                
+                // 如果是编辑模式，使用PUT方法
+                if (articleId) {
+                    url = `/api/articles/${articleId}`;
+                    method = 'PUT';
+                }
+                
+                // 发送请求
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(articleData)
+                });
+                
+                if (!response.ok) throw new Error('提交失败');
+                
+                // 显示成功通知
+                showNotification(successMessage || '文章发布成功');
+                
+                // 如果是新建文章，跳转到文章列表
+                if (!articleId) {
+                    setTimeout(() => {
+                        window.location.href = 'articles.html';
+                    }, 1000);
+                }
+                
+            } catch (err) {
+                console.error('提交文章失败:', err);
+                showNotification(`提交失败: ${err.message}`, false);
+            }
+        }
+        
+        // 退出登录
+        function handleLogout() {
+            if (confirm('确定要退出登录吗？')) {
+                // 实际项目中这里应该清除登录状态
+                showNotification('已成功退出登录');
+                setTimeout(() => {
+                    // 跳转到首页
+                    window.location.href = '/';
+                }, 1000);
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化移动端侧边栏样式
+            mobileSidebar.querySelector('div').classList.add('-translate-x-full', 'transition-transform', 'duration-300');
+            
+            // 初始化Markdown编辑器
+            initMarkdownEditor();
+            
+            // 检查是否是编辑模式（有文章ID参数）
+            const urlParams = new URLSearchParams(window.location.search);
+            const articleId = urlParams.get('id');
+            if (articleId) {
+                // 编辑现有文章
+                articleIdInput.value = articleId;
+                loadArticleData(articleId);
+            } else {
+                // 新建文章
+                pageTitle.textContent = '新建文章';
+            }
+            
+            // 事件监听
+            mobileMenuToggle.addEventListener('click', openMobileSidebar);
+            closeMobileSidebar.addEventListener('click', closeMobileSidebarMenu);
+            mobileSidebar.addEventListener('click', (e) => {
+                if (e.target === mobileSidebar) {
+                    closeMobileSidebarMenu();
+                }
+            });
+            logoutBtn.addEventListener('click', handleLogout);
+            mobileLogoutBtn.addEventListener('click', handleLogout);
+            articleForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                submitForm('文章发布成功');
+            });
+            previewBtn.addEventListener('click', showPreview);
+            closePreview.addEventListener('click', closePreviewModal);
+            saveDraftBtn.addEventListener('click', saveAsDraft);
+            
+            // 预览模态框点击外部关闭
+            previewModal.addEventListener('click', (e) => {
+                if (e.target === previewModal) {
+                    closePreviewModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+    
