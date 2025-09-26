@@ -389,103 +389,38 @@
                     
                     if (response.ok) {
                         allArticles = await response.json();
-                    } else {
-                        // 尝试获取所有文章（包括草稿和已发布）
-                        const publishedResponse = await fetch('/api/articles?category=');
-                        if (publishedResponse.ok) {
-                            allArticles = await publishedResponse.json();
-                        } else {
-                            // 如果API请求失败，使用localStorage中的模拟数据
-                            console.log('API请求失败，使用模拟数据');
-                            const mockData = localStorage.getItem('mockArticles');
-                            if (mockData) {
-                                allArticles = JSON.parse(mockData);
-                            } else {
-                                // 如果localStorage中没有模拟数据，使用内置的模拟数据
-                                allArticles = [
-                                    {
-                                        _id: '1',
-                                        title: 'React Hooks 入门指南',
-                                        category: 'tech',
-                                        status: 'published',
-                                        createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
-                                    },
-                                    {
-                                        _id: '2',
-                                        title: 'Vue 3 Composition API 实践',
-                                        category: 'tech',
-                                        status: 'published',
-                                        createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
-                                    },
-                                    {
-                                        _id: '3',
-                                        title: '前端性能优化技巧',
-                                        category: 'tech',
-                                        status: 'published',
-                                        createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
-                                    },
-                                    {
-                                        _id: '4',
-                                        title: '我的学习笔记：JavaScript 异步编程',
-                                        category: 'emotion',
-                                        status: 'published',
-                                        createdAt: new Date(Date.now() - 86400000 * 1).toISOString()
-                                    },
-                                    {
-                                        _id: '5',
-                                        title: '周末阅读：程序员如何保持创造力',
-                                        category: 'emotion',
-                                        status: 'draft',
-                                        createdAt: new Date().toISOString()
-                                    }
-                                ];
-                                // 保存到localStorage
-                                localStorage.setItem('mockArticles', JSON.stringify(allArticles));
-                            }
+                        // 如果API返回空数组，使用模拟数据
+                        if (!allArticles || allArticles.length === 0) {
+                            console.log('API返回空数据，使用模拟数据');
+                            allArticles = [
+                                {_id: '1', title: 'React Hooks 入门指南', category: 'tech', status: 'published', createdAt: new Date(Date.now() - 86400000 * 5).toISOString()},
+                                {_id: '2', title: 'Vue 3 Composition API 实践', category: 'tech', status: 'published', createdAt: new Date(Date.now() - 86400000 * 3).toISOString()},
+                                {_id: '3', title: '前端性能优化技巧', category: 'tech', status: 'published', createdAt: new Date(Date.now() - 86400000 * 2).toISOString()},
+                                {_id: '4', title: '我的学习笔记：JavaScript 异步编程', category: 'emotion', status: 'published', createdAt: new Date(Date.now() - 86400000 * 1).toISOString()},
+                                {_id: '5', title: '周末阅读：程序员如何保持创造力', category: 'emotion', status: 'draft', createdAt: new Date().toISOString()}
+                            ];
                         }
+                    } else {
+                        // API请求失败，使用模拟数据
+                        console.log('API请求失败，使用模拟数据');
+                        allArticles = [
+                            {_id: '1', title: 'React Hooks 入门指南', category: 'tech', status: 'published', createdAt: new Date(Date.now() - 86400000 * 5).toISOString()},
+                            {_id: '2', title: 'Vue 3 Composition API 实践', category: 'tech', status: 'published', createdAt: new Date(Date.now() - 86400000 * 3).toISOString()},
+                            {_id: '3', title: '前端性能优化技巧', category: 'tech', status: 'published', createdAt: new Date(Date.now() - 86400000 * 2).toISOString()},
+                            {_id: '4', title: '我的学习笔记：JavaScript 异步编程', category: 'emotion', status: 'published', createdAt: new Date(Date.now() - 86400000 * 1).toISOString()},
+                            {_id: '5', title: '周末阅读：程序员如何保持创造力', category: 'emotion', status: 'draft', createdAt: new Date().toISOString()}
+                        ];
                     }
                 } catch (err) {
                     console.error('API请求异常，使用模拟数据:', err);
                     // 如果发生异常，使用内置的模拟数据
                     allArticles = [
-                        {
-                            _id: '1',
-                            title: 'React Hooks 入门指南',
-                            category: 'tech',
-                            status: 'published',
-                            createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
-                        },
-                        {
-                            _id: '2',
-                            title: 'Vue 3 Composition API 实践',
-                            category: 'tech',
-                            status: 'published',
-                            createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
-                        },
-                        {
-                            _id: '3',
-                            title: '前端性能优化技巧',
-                            category: 'tech',
-                            status: 'published',
-                            createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
-                        },
-                        {
-                            _id: '4',
-                            title: '我的学习笔记：JavaScript 异步编程',
-                            category: 'emotion',
-                            status: 'published',
-                            createdAt: new Date(Date.now() - 86400000 * 1).toISOString()
-                        },
-                        {
-                            _id: '5',
-                            title: '周末阅读：程序员如何保持创造力',
-                            category: 'emotion',
-                            status: 'draft',
-                            createdAt: new Date().toISOString()
-                        }
+                        {_id: '1', title: 'React Hooks 入门指南', category: 'tech', status: 'published', createdAt: new Date(Date.now() - 86400000 * 5).toISOString()},
+                        {_id: '2', title: 'Vue 3 Composition API 实践', category: 'tech', status: 'published', createdAt: new Date(Date.now() - 86400000 * 3).toISOString()},
+                        {_id: '3', title: '前端性能优化技巧', category: 'tech', status: 'published', createdAt: new Date(Date.now() - 86400000 * 2).toISOString()},
+                        {_id: '4', title: '我的学习笔记：JavaScript 异步编程', category: 'emotion', status: 'published', createdAt: new Date(Date.now() - 86400000 * 1).toISOString()},
+                        {_id: '5', title: '周末阅读：程序员如何保持创造力', category: 'emotion', status: 'draft', createdAt: new Date().toISOString()}
                     ];
-                    // 保存到localStorage
-                    localStorage.setItem('mockArticles', JSON.stringify(allArticles));
                 }
                 
                 // 过滤文章

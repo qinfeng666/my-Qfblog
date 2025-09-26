@@ -39,6 +39,16 @@ app.get('/api/articles', async (req, res) => {
   }
 });
 
+// 获取所有文章（包括草稿）
+app.get('/api/articles/all', async (req, res) => {
+  try {
+    const articles = await db.collection('articles').find().sort({ createdAt: -1 }).toArray();
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ error: '获取文章失败' });
+  }
+});
+
 app.get('/api/articles/:id', async (req, res) => {
   try {
     const article = await db.collection('articles').findOne({ _id: req.params.id });
